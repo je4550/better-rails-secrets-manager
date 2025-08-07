@@ -1,33 +1,38 @@
 module BetterRailsSecretsManager
   class SecretsController < ApplicationController
     def index
-      @environments = secrets_manager.available_environments
-      @current_secrets = secrets_manager.read_secrets(current_environment)
+      @environments = available_environments
+      @current_secrets = read_current_secrets
+      
+      # Debug logging
+      Rails.logger.info "BetterRailsSecretsManager: Current environment: #{current_environment}"
+      Rails.logger.info "BetterRailsSecretsManager: Available environments: #{@environments.inspect}"
+      Rails.logger.info "BetterRailsSecretsManager: Secrets loaded: #{@current_secrets.any? ? 'Yes' : 'No'}"
     end
     
     def edit
-      @current_secrets = secrets_manager.read_secrets(current_environment)
+      @current_secrets = read_current_secrets
       @formatted_secrets = format_secrets_for_editing(@current_secrets)
     end
     
     def update
       secrets_hash = parse_secrets_from_params(params[:secrets])
       
-      if secrets_manager.write_secrets(current_environment, secrets_hash)
-        redirect_to secrets_path, notice: "Secrets updated successfully for #{current_environment}"
+      if CredentialsAdapter.write(current_environment, secrets_hash)
+        redirect_to root_path, notice: "Secrets updated successfully for #{current_environment}"
       else
-        redirect_to edit_secrets_path, alert: "Failed to update secrets"
+        redirect_to edit_path, alert: "Failed to update secrets"
       end
     end
     
     def switch_environment
       environment = params[:environment]
       
-      if secrets_manager.available_environments.include?(environment)
+      if available_environments.include?(environment)
         session[:current_environment] = environment
-        redirect_to secrets_path, notice: "Switched to #{environment} environment"
+        redirect_to root_path, notice: "Switched to #{environment} environment"
       else
-        redirect_to secrets_path, alert: "Invalid environment"
+        redirect_to root_path, alert: "Invalid environment"
       end
     end
     
@@ -35,9 +40,9 @@ module BetterRailsSecretsManager
       environment_name = params[:environment_name]
       
       if secrets_manager.add_environment(environment_name)
-        redirect_to secrets_path, notice: "Environment '#{environment_name}' added successfully"
+        redirect_to root_path, notice: "Environment '#{environment_name}' added successfully"
       else
-        redirect_to secrets_path, alert: "Failed to add environment or it already exists"
+        redirect_to root_path, alert: "Failed to add environment or it already exists"
       end
     end
     
@@ -46,9 +51,9 @@ module BetterRailsSecretsManager
       
       if secrets_manager.remove_environment(environment)
         session[:current_environment] = 'development' if current_environment == environment
-        redirect_to secrets_path, notice: "Environment '#{environment}' removed successfully"
+        redirect_to root_path, notice: "Environment '#{environment}' removed successfully"
       else
-        redirect_to secrets_path, alert: "Cannot remove this environment"
+        redirect_to root_path, alert: "Cannot remove this environment"
       end
     end
     
@@ -67,18 +72,35 @@ module BetterRailsSecretsManager
         json_data = file.read
         
         if secrets_manager.import_secrets(current_environment, json_data)
-          redirect_to secrets_path, notice: "Secrets imported successfully"
+          redirect_to root_path, notice: "Secrets imported successfully"
         else
-          redirect_to secrets_path, alert: "Failed to import secrets. Please check the file format."
+          redirect_to root_path, alert: "Failed to import secrets. Please check the file format."
         end
       else
-        redirect_to secrets_path, alert: "Please select a file to import"
+        redirect_to root_path, alert: "Please select a file to import"
       end
     end
     
     private
     
+    def available_environments
+      environments = %w[development test staging production]
+      
+      # Check for additional environment credential files
+      Dir.glob(Rails.root.join("config", "credentials", "*.yml.enc")).each do |file|
+        env = File.basename(file, ".yml.enc")
+        environments << env unless environments.include?(env)
+      end
+      
+      environments.uniq.sort
+    end
+    
+    def read_current_secrets
+      CredentialsAdapter.read(current_environment)
+    end
+    
     def format_secrets_for_editing(secrets_hash)
+      return "" if secrets_hash.blank?
       YAML.dump(secrets_hash).gsub(/^---\n/, '')
     end
     

@@ -23,17 +23,37 @@ module BetterRailsSecretsManager
     end
 
     def read_secrets(environment)
-      credentials_path = credentials_path_for(environment)
-      key_path = key_path_for(environment)
-      
-      if File.exist?(credentials_path) && File.exist?(key_path)
-        decrypt_credentials(credentials_path, key_path)
-      else
-        {}
+      # Use Rails' native credentials system
+      begin
+        credentials = if environment == 'production'
+          # Production uses the main credentials file
+          Rails.application.credentials
+        else
+          # Other environments use environment-specific credentials
+          Rails.application.credentials(environment: environment.to_sym)
+        end
+        
+        # Convert the credentials to a hash
+        if credentials
+          # Get all the config as a hash
+          config = credentials.config
+          config.is_a?(Hash) ? config : {}
+        else
+          {}
+        end
+      rescue => e
+        Rails.logger.debug "Reading credentials for #{environment}: #{e.message}"
+        
+        # Fallback: try manual decryption
+        credentials_path = credentials_path_for(environment)
+        key_path = key_path_for(environment)
+        
+        if File.exist?(credentials_path) && File.exist?(key_path)
+          decrypt_credentials(credentials_path, key_path)
+        else
+          {}
+        end
       end
-    rescue => e
-      Rails.logger.error "Failed to read secrets for #{environment}: #{e.message}"
-      {}
     end
 
     def write_secrets(environment, secrets_hash)
@@ -41,12 +61,23 @@ module BetterRailsSecretsManager
       key_path = key_path_for(environment)
       
       ensure_credentials_directory
-      ensure_key_file(key_path)
+      
+      # Only create key file if it doesn't exist
+      if !File.exist?(key_path) && !File.exist?(credentials_path)
+        ensure_key_file(key_path)
+      end
+      
+      # Make sure key file exists before writing
+      if !File.exist?(key_path)
+        Rails.logger.error "Cannot write secrets: key file missing at #{key_path}"
+        return false
+      end
       
       encrypt_credentials(credentials_path, key_path, secrets_hash)
       true
     rescue => e
       Rails.logger.error "Failed to write secrets for #{environment}: #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
       false
     end
 
@@ -130,28 +161,47 @@ module BetterRailsSecretsManager
     end
 
     def decrypt_credentials(credentials_path, key_path)
-      key = File.read(key_path).strip
-      encrypted_data = File.binread(credentials_path)
+      # Use the correct environment key name for each environment
+      env_key = if credentials_path.to_s.include?("credentials.yml.enc")
+        "RAILS_MASTER_KEY"
+      else
+        environment = File.basename(credentials_path, ".yml.enc")
+        "RAILS_#{environment.upcase}_KEY"
+      end
       
       credentials = ActiveSupport::EncryptedConfiguration.new(
         config_path: credentials_path,
         key_path: key_path,
-        env_key: "RAILS_MASTER_KEY",
-        raise_if_missing_key: true
+        env_key: env_key,
+        raise_if_missing_key: false
       )
       
-      credentials.read || {}
+      result = credentials.read
+      result.is_a?(Hash) ? result : {}
+    rescue => e
+      Rails.logger.debug "Failed to decrypt #{credentials_path}: #{e.message}"
+      {}
     end
 
     def encrypt_credentials(credentials_path, key_path, secrets_hash)
+      env_key = if credentials_path.to_s.include?("credentials.yml.enc")
+        "RAILS_MASTER_KEY"
+      else
+        environment = File.basename(credentials_path, ".yml.enc")
+        "RAILS_#{environment.upcase}_KEY"
+      end
+      
       credentials = ActiveSupport::EncryptedConfiguration.new(
         config_path: credentials_path,
         key_path: key_path,
-        env_key: "RAILS_MASTER_KEY",
-        raise_if_missing_key: true
+        env_key: env_key,
+        raise_if_missing_key: false
       )
       
-      credentials.write(secrets_hash.to_yaml)
+      # Ensure we write valid YAML
+      yaml_content = secrets_hash.deep_stringify_keys.to_yaml
+      yaml_content = yaml_content.gsub(/^---\n/, '') if yaml_content.start_with?("---\n")
+      credentials.write(yaml_content)
     end
   end
 end
