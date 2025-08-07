@@ -18,7 +18,19 @@ module BetterRailsSecretsManager
     end
     
     def current_environment
-      session[:current_environment] || 'development'
+      # Default to 'credentials' (main file) or the first available environment
+      session[:current_environment] || default_environment
+    end
+    
+    def default_environment
+      # Check what credential files exist and return the first one
+      if File.exist?(Rails.root.join('config', 'credentials.yml.enc'))
+        'credentials'
+      elsif Dir.glob(Rails.root.join('config', 'credentials', '*.yml.enc')).any?
+        File.basename(Dir.glob(Rails.root.join('config', 'credentials', '*.yml.enc')).first, '.yml.enc')
+      else
+        'credentials' # fallback
+      end
     end
     
     def secrets_manager

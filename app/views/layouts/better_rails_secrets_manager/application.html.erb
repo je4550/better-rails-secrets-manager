@@ -41,7 +41,15 @@
           </div>
           <% if session[:authenticated] %>
             <div class="flex items-center space-x-4">
-              <span class="text-white">Environment: <strong><%= current_environment.capitalize %></strong></span>
+              <% 
+                display_env = case current_environment
+                when 'credentials'
+                  'Main'
+                else
+                  current_environment.capitalize
+                end
+              %>
+              <span class="text-white">Environment: <strong><%= display_env %></strong></span>
               <%= link_to "Logout", session_path(1), method: :delete, class: "text-white hover:text-gray-200" %>
             </div>
           <% end %>
