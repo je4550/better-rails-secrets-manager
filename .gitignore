@@ -1,0 +1,55 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+
+# Gem builds
+*.gem
+Gemfile.lock
+
+# Test app
+/test_secrets_app/
+/spec/dummy/
+
+# Rails specific
+*.log
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-*
+.byebug_history
+
+# Credentials and keys (important!)
+/config/master.key
+/config/credentials.yml.enc
+/config/credentials/*.key
+/config/credentials/*.yml.enc
+*.key
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# RSpec
+/spec/examples.txt
+
+# Bundler
+.bundle/
+vendor/bundle/
+
+# Environment variables
+.env
+.env.*
+
+# Node/Yarn (if using webpacker)
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
