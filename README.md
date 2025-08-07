@@ -1,23 +1,40 @@
 # Better Rails Secrets Manager 🔐
 
-A beautiful web interface for managing Rails secrets and credentials across ALL environments. Edit development, staging, AND production secrets through an intuitive UI - no more wrestling with terminal editors!
+A beautiful web interface for managing Rails secrets and credentials across ALL environments. Features both a **visual form editor** and YAML editor - no more wrestling with terminal editors or worrying about YAML syntax!
+
+## 🎨 Two Editing Modes
+
+### Form Editor (NEW!)
+- **Visual Interface**: Add/edit secrets using a clean form interface
+- **Organized Sections**: Group related secrets into sections (e.g., AWS, Stripe, Database)
+- **Dynamic Fields**: Add/remove fields and sections on the fly
+- **No YAML Syntax**: The form handles all formatting for you
+- **Type Safety**: Prevents YAML syntax errors
+
+### YAML Editor
+- **Syntax Highlighting**: CodeMirror-powered editor with YAML syntax highlighting
+- **Direct Control**: Edit raw YAML when you need precise control
+- **Validation**: Built-in YAML validation
 
 ## 🔒 Security Model
 
 - **Development Environment Only**: The web interface only loads when Rails.env.development? is true
+- **File-Based Organization**: Credentials are organized by actual file names, not assumed environments
 - **Key-Based Access**: If you have the encryption keys, you have access to the secrets
-- **No Additional Authentication**: No password needed - having the keys IS the authentication
 - **Rails Native Security**: Uses Rails' built-in encryption system for all operations
 
 ## ✨ Features
 
 - **Beautiful Web Interface**: Modern, responsive UI built with Tailwind CSS
-- **ALL Environments**: Edit development, test, staging, AND production secrets from one interface
-- **Visual Secret Editor**: Syntax-highlighted YAML editor with validation
-- **Environment Switching**: Easily switch between any environment with one click
+- **Form-Based Editor**: Visual interface for managing secrets without touching YAML
+- **ALL Environments**: Edit any credential file from one interface
+- **Smart Sections**: Organize secrets into logical groups (database, APIs, services)
+- **Dynamic Management**: Add/remove fields and sections on the fly
+- **YAML Editor Option**: Switch to raw YAML editing when needed
+- **Environment Switching**: Easily switch between credential files with one click
 - **Import/Export**: Backup and restore secrets in JSON format
 - **Rails Native**: Works seamlessly with Rails' built-in credentials system
-- **Custom Environments**: Add unlimited custom environments for your specific needs
+- **File-Based Discovery**: Automatically detects all credential files in your project
 - **Secure by Design**: Only accessible in development environment with proper keys
 
 ## 📦 Installation
@@ -59,18 +76,28 @@ This will:
 
 ## 🎨 Features in Detail
 
-### Environment Management
-- **Default Environments**: development, test, staging, production
-- **Custom Environments**: Add any custom environment your project needs
-- **One-Click Switching**: Switch between environments instantly
-- **Environment Removal**: Remove custom environments when no longer needed
+### Form Editor (Default)
+- **Visual Fields**: Add secrets using input fields - no YAML knowledge required
+- **Sections**: Organize related secrets (e.g., all AWS keys in one section)
+- **Dynamic Controls**: 
+  - Click "+ Add Field" for simple key-value pairs
+  - Click "+ Add Section" to create grouped secrets
+  - Remove any field or section with the × button
+- **Auto-Formatting**: The form automatically generates proper YAML structure
+- **Error Prevention**: No more YAML syntax errors or indentation issues
 
-### Secret Editing
-- **Visual Editor**: Modern code editor with YAML syntax highlighting
-- **Real-time Validation**: Validates YAML as you type
+### YAML Editor (Advanced)
+- **Syntax Highlighting**: CodeMirror-powered editor with YAML support
+- **Direct Editing**: Full control over the YAML structure
+- **Validation**: Check your YAML syntax before saving
 - **Format Button**: Auto-format your YAML with proper indentation
-- **Nested Secrets**: Full support for complex nested structures
-- **Masked Values**: Sensitive values are masked in the view mode
+- **Switch Modes**: Toggle between form and YAML views anytime
+
+### File-Based Organization
+- **Automatic Discovery**: Finds all credential files in your project
+- **Clear Naming**: Shows actual file names (credentials.yml.enc → "Main Credentials")
+- **Independent Files**: Each credential file is completely separate
+- **No Assumptions**: Doesn't assume what each file is for
 
 ### Import/Export
 - **JSON Export**: Export secrets to JSON for backup or sharing
@@ -79,11 +106,60 @@ This will:
 - **Environment-Specific**: Import/export is per-environment
 
 ### Developer Experience
-- **Single Interface**: Edit ALL environments from one place
-- **No Password Hassle**: If you have the keys, you're in
+- **Form-First Design**: Default to the easy form editor, with YAML as an option
+- **Single Interface**: Edit ALL credential files from one place
+- **No YAML Headaches**: Form editor eliminates indentation and syntax errors
+- **Section Organization**: Group related secrets logically
 - **No External Dependencies**: Everything runs locally
 - **Rails Integration**: Works with your existing Rails credentials
 - **Key Management**: Automatically manages encryption keys
+
+## 📝 Usage Examples
+
+### Using the Form Editor
+
+1. **Adding a simple secret**:
+   - Click "+ Add Field"
+   - Enter key: `secret_key_base`
+   - Enter value: `your-secret-value`
+   - Click "Save Secrets"
+
+2. **Creating a section for AWS credentials**:
+   - Click "+ Add Section"
+   - Enter section name: `aws`
+   - Click "+ Add field to aws"
+   - Add your AWS keys:
+     - `access_key_id`: `AKIA...`
+     - `secret_access_key`: `your-secret`
+     - `region`: `us-east-1`
+
+3. **Organizing database credentials**:
+   ```
+   Section: database
+   ├── host: localhost
+   ├── username: myapp
+   ├── password: secure_password
+   └── pool: 5
+   ```
+
+### Result in YAML
+
+The form editor automatically generates clean YAML:
+
+```yaml
+secret_key_base: your-secret-value
+
+aws:
+  access_key_id: AKIA...
+  secret_access_key: your-secret
+  region: us-east-1
+
+database:
+  host: localhost
+  username: myapp
+  password: secure_password
+  pool: 5
+```
 
 ## 🔧 Configuration
 

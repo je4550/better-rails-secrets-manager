@@ -14,14 +14,34 @@ module BetterRailsSecretsManager
     
     def edit
       @current_secrets = read_current_secrets
-      @formatted_secrets = format_secrets_for_editing(@current_secrets)
+      
+      # Check if user wants YAML mode
+      if params[:mode] == 'yaml'
+        @formatted_secrets = format_secrets_for_editing(@current_secrets)
+        render 'edit'
+      else
+        # Default to form mode
+        render 'edit_form'
+      end
     end
     
     def update
       Rails.logger.info "[BetterRailsSecretsManager] Update called for environment: #{current_environment}"
-      Rails.logger.info "[BetterRailsSecretsManager] Raw params[:secrets]: #{params[:secrets].inspect[0..500]}"
       
-      secrets_hash = parse_secrets_from_params(params[:secrets])
+      # Check if we received JSON from the form editor
+      if params[:secrets_json].present?
+        Rails.logger.info "[BetterRailsSecretsManager] Processing form data"
+        begin
+          secrets_hash = JSON.parse(params[:secrets_json])
+        rescue JSON::ParserError => e
+          redirect_to edit_path, alert: "Invalid form data: #{e.message}"
+          return
+        end
+      else
+        # YAML mode
+        Rails.logger.info "[BetterRailsSecretsManager] Processing YAML data"
+        secrets_hash = parse_secrets_from_params(params[:secrets])
+      end
       
       Rails.logger.info "[BetterRailsSecretsManager] Parsed secrets hash keys: #{secrets_hash.keys.inspect}"
       
