@@ -26,6 +26,7 @@ A beautiful web interface for managing Rails secrets and credentials across ALL 
 ## ✨ Features
 
 - **Beautiful Web Interface**: Modern, responsive UI built with Tailwind CSS
+- **Dark Mode**: Toggle between light and dark themes with persistent preference
 - **Form-Based Editor**: Visual interface for managing secrets without touching YAML
 - **ALL Environments**: Edit any credential file from one interface
 - **Smart Sections**: Organize secrets into logical groups (database, APIs, services)
@@ -201,25 +202,36 @@ Each environment has its own encryption key:
 
 The interface includes:
 
-1. **Sidebar**
+1. **Header Navigation**
+   - Rails Secrets Manager title
+   - Dark mode toggle (moon/sun icon)
+   - Current environment display
+   - Logout link (if authentication enabled)
+
+2. **Sidebar**
    - Environment list with active indicator
    - Add new environment form
    - Quick environment switcher
 
-2. **Main Panel**
+3. **Main Panel**
    - Current secrets display (masked values)
    - Edit button for modification
    - Visual tree structure for nested secrets
 
-3. **Import/Export Section**
+4. **Import/Export Section**
    - Export current environment to JSON
    - Import from JSON file
    - Maintains backup history
 
-4. **Editor View**
+5. **Editor View**
    - Syntax-highlighted YAML editor
    - Format and validate buttons
    - Save and cancel actions
+
+6. **Dark Mode**
+   - Automatic theme persistence using localStorage
+   - Optimized color contrast for both themes
+   - Smooth transitions between light and dark modes
 
 ## 🔐 Security Architecture
 

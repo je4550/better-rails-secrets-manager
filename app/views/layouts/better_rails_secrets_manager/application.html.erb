@@ -10,13 +10,102 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
     
+    <script>
+      // Initialize theme immediately to prevent flash
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.classList.add('theme-' + savedTheme);
+      })();
+    </script>
+    
     <style>
+      /* Dark Mode Variables */
+      :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        --bg-tertiary: #f3f4f6;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --text-tertiary: #9ca3af;
+        --border-primary: #e5e7eb;
+        --border-secondary: #d1d5db;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+      
+      .theme-dark {
+        --bg-primary: #1f2937;
+        --bg-secondary: #111827;
+        --bg-tertiary: #374151;
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --text-tertiary: #9ca3af;
+        --border-primary: #4b5563;
+        --border-secondary: #6b7280;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+      
+      /* Apply theme colors */
+      body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: background-color 0.3s, color 0.3s;
+      }
+      
+      .bg-white {
+        background-color: var(--bg-primary);
+      }
+      
+      .text-gray-500 {
+        color: var(--text-secondary);
+      }
+      
+      .text-gray-700 {
+        color: var(--text-primary);
+      }
+      
+      .border {
+        border-color: var(--border-primary);
+      }
+      
       /* Background Effects */
       .gradient-bg {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
       .card-shadow {
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-lg);
+      }
+      
+      /* Dark mode gradient */
+      .theme-dark .gradient-bg {
+        background: linear-gradient(135deg, #312e81 0%, #581c87 100%);
+      }
+      
+      /* Dark Mode Toggle Button */
+      .theme-toggle {
+        background-color: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .theme-toggle:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+      
+      .theme-toggle svg {
+        width: 1.25rem;
+        height: 1.25rem;
       }
       
       /* Button Styles - Primary */
@@ -145,6 +234,47 @@
         text-decoration: underline;
       }
       
+      /* Dark mode specific styles */
+      .theme-dark .bg-blue-50 {
+        background-color: #1e3a8a;
+      }
+      
+      .theme-dark .text-blue-700 {
+        color: #93c5fd;
+      }
+      
+      .theme-dark .bg-green-100 {
+        background-color: #14532d;
+      }
+      
+      .theme-dark .text-green-700 {
+        color: #86efac;
+      }
+      
+      .theme-dark .bg-red-100 {
+        background-color: #7f1d1d;
+      }
+      
+      .theme-dark .text-red-700 {
+        color: #fca5a5;
+      }
+      
+      .theme-dark .border-green-400 {
+        border-color: #4ade80;
+      }
+      
+      .theme-dark .border-red-400 {
+        border-color: #f87171;
+      }
+      
+      .theme-dark .border-blue-400 {
+        border-color: #60a5fa;
+      }
+      
+      .theme-dark input[type="file"] {
+        color: var(--text-primary);
+      }
+      
       /* Environment Button Styles */
       .env-button {
         display: block;
@@ -164,11 +294,20 @@
         color: white;
       }
       .env-button-inactive {
-        background-color: #f3f4f6;
-        color: #374151;
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
       }
       .env-button-inactive:hover {
-        background-color: #e5e7eb;
+        background-color: var(--border-primary);
+      }
+      
+      .theme-dark .env-button-inactive {
+        background-color: var(--bg-tertiary);
+        color: var(--text-secondary);
+      }
+      
+      .theme-dark .env-button-inactive:hover {
+        background-color: #4b5563;
       }
       
       /* Form Input Styles */
@@ -178,10 +317,12 @@
       select {
         width: 100%;
         padding: 0.5rem 0.75rem;
-        border: 1px solid #d1d5db;
+        border: 1px solid var(--border-secondary);
         border-radius: 0.375rem;
         font-size: 0.875rem;
         transition: all 0.2s;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
       }
       input[type="text"]:focus, 
       input[type="password"]:focus, 
@@ -202,11 +343,15 @@
         justify-content: center;
       }
       .btn-icon:hover {
-        background-color: #f3f4f6;
+        background-color: var(--bg-tertiary);
       }
       .btn-icon-danger:hover {
-        background-color: #fee2e2;
+        background-color: rgba(239, 68, 68, 0.1);
         color: #dc2626;
+      }
+      .theme-dark .btn-icon-danger:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #f87171;
       }
       
       /* Add Button Styles */
@@ -223,15 +368,22 @@
         border-radius: 0.25rem;
       }
       .btn-add:hover {
-        background-color: #eef2ff;
+        background-color: rgba(79, 70, 229, 0.1);
         color: #4338ca;
+      }
+      .theme-dark .btn-add {
+        color: #818cf8;
+      }
+      .theme-dark .btn-add:hover {
+        background-color: rgba(129, 140, 248, 0.2);
+        color: #a5b4fc;
       }
       
       /* Section Headers */
       .section-header {
         font-size: 1.125rem;
         font-weight: 600;
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 0.75rem;
       }
       
@@ -253,6 +405,11 @@
         margin-bottom: 1.5rem;
       }
       
+      /* Dark mode CodeMirror adjustments */
+      .theme-dark .CodeMirror {
+        border-color: var(--border-secondary);
+      }
+      
       /* Alert Animations */
       @keyframes slideDown {
         from {
@@ -271,15 +428,23 @@
     </style>
   </head>
 
-  <body class="bg-gray-50">
+  <body>
     <nav class="gradient-bg shadow-lg">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <h1 class="text-white text-2xl font-bold">Rails Secrets Manager</h1>
           </div>
-          <% if session[:authenticated] %>
-            <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-4">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+              <svg class="sun-icon" style="display: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              </svg>
+            </button>
+            <% if session[:authenticated] %>
               <% 
                 display_env = case current_environment
                 when 'credentials'
@@ -290,9 +455,8 @@
               %>
               <span class="text-white">Environment: <strong><%= display_env %></strong></span>
               <%= link_to "Logout", session_path(1), method: :delete, class: "text-white hover:text-gray-200" %>
-            </div>
-          <% end %>
-        </div>
+            <% end %>
+          </div>
       </div>
     </nav>
 
@@ -318,5 +482,44 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+    
+    <script>
+      // Dark mode toggle functionality
+      function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.classList.contains('theme-dark') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.classList.remove('theme-' + currentTheme);
+        html.classList.add('theme-' + newTheme);
+        
+        // Update icon visibility
+        updateThemeIcon(newTheme);
+        
+        // Save preference to localStorage
+        localStorage.setItem('theme', newTheme);
+      }
+      
+      function updateThemeIcon(theme) {
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        
+        if (sunIcon && moonIcon) {
+          if (theme === 'dark') {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+          } else {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+          }
+        }
+      }
+      
+      // Initialize theme icon on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        updateThemeIcon(savedTheme);
+      });
+    </script>
   </body>
 </html>
